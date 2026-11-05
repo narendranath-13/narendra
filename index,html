@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CloudCrave · Cloud Kitchen Delivery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ RESET & TOKENS ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#07060a;
+  --surface:rgba(255,255,255,.045);
+  --surface-2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.09);
+  --stroke-hot:rgba(255,179,71,.45);
+  --gold:#ffc46b;
+  --amber:#ffb347;
+  --orange:#ff6a00;
+  --text:#f8f5f0;
+  --muted:#9d97a8;
+  --r:22px;
+  --ease:cubic-bezier(.2,.8,.25,1);
+}
+
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+
+body{
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Ambient light + grid texture */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(50rem 30rem at 8% -8%, rgba(255,106,0,.22), transparent 65%),
+    radial-gradient(45rem 32rem at 95% 4%, rgba(255,179,71,.13), transparent 65%),
+    radial-gradient(55rem 40rem at 50% 108%, rgba(126,58,242,.16), transparent 65%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(circle at 50% 28%,#000 0%,transparent 78%);
+  mask-image:radial-gradient(circle at 50% 28%,#000 0%,transparent 78%);
+}
+
+img,svg{display:block;max-width:100%}
+button{font:inherit;color:inherit}
+::selection{background:var(--amber);color:#1a0d00}
+
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:#0b0910}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--orange),var(--amber));border-radius:99px}
+
+/* ============ NAVBAR ============ */
+.nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:15px clamp(18px,4vw,64px);
+  background:rgba(7,6,10,.62);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  backdrop-filter:blur(18px) saturate(160%);
+  border-bottom:1px solid var(--stroke);
+}
+
+.logo{
+  display:flex;align-items:center;gap:11px;
+  font-family:"Playfair Display",serif;
+  font-size:1.5rem;font-weight:800;letter-spacing:.4px;
+  text-decoration:none;color:var(--text);white-space:nowrap;
+}
+.logo .mark{
+  width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
+  font-size:1.15rem;
+  background:linear-gradient(135deg,var(--orange),var(--amber) 60%,var(--gold));
+  box-shadow:0 8px 26px -8px rgba(255,106,0,.9);
+}
+.logo em{
+  font-style:normal;
+  background:linear-gradient(120deg,var(--gold),var(--amber),var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+.nav-links{display:flex;align-items:center;gap:6px;list-style:none}
+.nav-links a{
+  position:relative;padding:9px 15px;border-radius:99px;
+  color:var(--muted);text-decoration:none;font-size:.93rem;font-weight:500;
+  transition:.3s var(--ease);
+}
+.nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--surface-2)}
+
+.nav-right{display:flex;align-items:center;gap:12px}
+
+/* ============ BUTTONS ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 26px;border-radius:999px;border:1px solid transparent;
+  font-weight:600;font-size:.95rem;cursor:pointer;white-space:nowrap;
+  text-decoration:none;color:inherit;transition:.35s var(--ease);
+}
+.btn.primary{
+  background:linear-gradient(135deg,var(--orange),var(--amber) 55%,var(--gold));
+  color:#241000;
+  box-shadow:0 14px 34px -12px rgba(255,106,0,.85);
+}
+.btn.primary:hover{transform:translateY(-3px);box-shadow:0 22px 46px -14px rgba(255,106,0,1)}
+.btn.ghost{background:var(--surface);border-color:var(--stroke)}
+.btn.ghost:hover{background:var(--surface-2);transform:translateY(-3px);border-color:var(--stroke-hot)}
+.btn.full{width:100%}
+.btn:active{transform:scale(.97)}
+
+.cart-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:11px 20px 11px 16px;border-radius:999px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--stroke);color:var(--text);
+  font-weight:600;font-size:.9rem;transition:.35s var(--ease);
+}
+.cart-btn:hover{background:var(--surface-2);border-color:var(--stroke-hot);transform:translateY(-2px)}
+.cart-btn .count{
+  min-width:23px;height:23px;padding:0 6px;border-radius:99px;
+  display:grid;place-items:center;font-size:.75rem;font-weight:700;
+  background:linear-gradient(135deg,var(--orange),var(--amber));color:#241000;
+}
+.cart-btn .count.pop{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.55)}100%{transform:scale(1)}}
+
+/* ============ HERO ============ */
+.hero{
+  max-width:1240px;margin:0 auto;
+  padding:clamp(44px,7vw,90px) clamp(18px,4vw,40px) 30px;
+  display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,70px);
+  align-items:center;
+}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:8px 16px;border-radius:99px;margin-bottom:22px;
+  background:rgba(255,179,71,.09);border:1px solid rgba(255,179,71,.28);
+  color:var(--gold);font-size:.78rem;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;
+}
+.eyebrow .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 0 0 rgba(255,179,71,.8);animation:ping 2s infinite;
+}
+@keyframes ping{
+  0%{box-shadow:0 0 0 0 rgba(255,179,71,.75)}
+  70%{box-shadow:0 0 0 12px rgba(255,179,71,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,179,71,0)}
+}
+
+.hero h1{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(2.5rem,5.4vw,4.4rem);
+  line-height:1.05;font-weight:800;letter-spacing:-1.5px;
+  margin-bottom:22px;
+}
+.hero h1 span{
+  display:block;
+  background:linear-gradient(105deg,var(--gold),var(--amber) 40%,var(--orange) 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 30px rgba(255,106,0,.35));
+}
+.hero p.lead{
+  color:var(--muted);font-size:clamp(1rem,1.5vw,1.12rem);
+  max-width:52ch;margin-bottom:34px;font-weight:300;
+}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:44px}
+
+.hero-stats{
+  display:flex;flex-wrap:wrap;gap:clamp(20px,3.5vw,46px);
+  padding-top:26px;border-top:1px solid var(--stroke);
+}
+.stat b{
+  display:block;font-family:"Playfair Display",serif;
+  font-size:1.7rem;font-weight:700;line-height:1.2;
+  background:linear-gradient(120deg,var(--gold),var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.stat span{font-size:.8rem;color:var(--muted);letter-spacing:.5px}
+
+/* Hero artwork */
+.hero-art{position:relative;display:grid;place-items:center;min-height:400px}
+.plate-ring{
+  position:absolute;width:clamp(280px,32vw,400px);aspect-ratio:1;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,var(--orange),var(--gold),transparent 60%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  animation:spin 9s linear infinite;opacity:.9;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.plate{
+  position:relative;width:clamp(230px,26vw,330px);aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;font-size:clamp(96px,11vw,140px);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.14), transparent 55%),
+    radial-gradient(circle at 50% 50%, #241108, #100a14 75%);
+  border:1px solid rgba(255,179,71,.3);
+  box-shadow:
+    0 40px 90px -30px rgba(255,106,0,.55),
+    inset 0 0 70px rgba(255,106,0,.14);
+  animation:floaty 6s ease-in-out infinite;
+}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+
+.chip{
+  position:absolute;display:flex;align-items:center;gap:8px;
+  padding:11px 17px;border-radius:99px;
+  background:rgba(18,14,24,.82);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border:1px solid var(--stroke);
+  font-size:.82rem;font-weight:600;white-space:nowrap;
+  box-shadow:0 20px 40px -20px #000;
+  animation:floaty 5.5s ease-in-out infinite;
+}
+.chip.c1{top:6%;left:-4%;animation-delay:.2s}
+.chip.c2{top:38%;right:-8%;animation-delay:1.1s}
+.chip.c3{bottom:8%;left:2%;animation-delay:2s}
+
+/* ============ SECTION HEADINGS ============ */
+.section{max-width:1240px;margin:0 auto;padding:clamp(50px,7vw,86px) clamp(18px,4vw,40px)}
+.section-head{text-align:center;margin-bottom:44px}
+.section-head .kicker{
+  color:var(--gold);font-size:.78rem;font-weight:700;
+  letter-spacing:2.4px;text-transform:uppercase;margin-bottom:12px;
+}
+.section-head h2{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(1.9rem,3.6vw,2.9rem);
+  font-weight:700;letter-spacing:-.8px;line-height:1.15;margin-bottom:12px;
+}
+.section-head p{color:var(--muted);font-size:1rem;max-width:56ch;margin:0 auto;font-weight:300}
+
+/* Filters */
+.filters{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:42px;
+}
+.pill{
+  padding:11px 22px;border-radius:99px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--stroke);
+  color:var(--muted);font-size:.88rem;font-weight:600;
+  transition:.32s var(--ease);
+}
+.pill:hover{color:var(--text);border-color:var(--stroke-hot);transform:translateY(-2px)}
+.pill.active{
+  background:linear-gradient(135deg,var(--orange),var(--amber));
+  border-color:transparent;color:#241000;
+  box-shadow:0 12px 30px -12px rgba(255,106,0,.9);
+}
+
+/* ============ MENU GRID ============ */
+.grid{
+  display:grid;gap:26px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--stroke);
+  border-radius:var(--r);
+  overflow:hidden;
+  transition:.45s var(--ease);
+  animation:rise .6s var(--ease) backwards;
+}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+.card:hover{
+  transform:translateY(-9px);
+  border-color:var(--stroke-hot);
+  box-shadow:0 30px 60px -26px rgba(255,106,0,.6);
+}
+
+.card-media{
+  position:relative;height:170px;display:grid;place-items:center;
+  font-size:62px;overflow:hidden;
+}
+.card-media::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 130%, rgba(0,0,0,.5), transparent 62%);
+}
+.card-emoji{
+  position:relative;z-index:1;
+  filter:drop-shadow(0 16px 22px rgba(0,0,0,.55));
+  transition:.5s var(--ease);
+}
+.card:hover .card-emoji{transform:scale(1.16) rotate(-7deg)}
+
+.tag{
+  position:absolute;z-index:2;top:13px;left:13px;
+  padding:6px 12px;border-radius:99px;
+  background:rgba(10,8,14,.72);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,196,107,.4);
+  color:var(--gold);font-size:.68rem;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;
+}
+
+.card-body{padding:18px 20px 20px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:7px}
+.card-top h3{
+  font-family:"Playfair Display",serif;
+  font-size:1.09rem;font-weight:700;line-height:1.3;letter-spacing:-.2px;
+}
+.rating{
+  flex-shrink:0;font-size:.76rem;font-weight:700;color:var(--gold);
+  background:rgba(255,179,71,.12);padding:4px 9px;border-radius:8px;
+}
+.card-body p{color:var(--muted);font-size:.83rem;font-weight:300;margin-bottom:16px;line-height:1.5}
+
+.card-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.price{
+  font-family:"Playfair Display",serif;
+  font-size:1.32rem;font-weight:700;
+  background:linear-gradient(120deg,var(--gold),var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.add{
+  width:40px;height:40px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;font-size:1.35rem;font-weight:500;line-height:1;
+  background:var(--surface-2);border:1px solid var(--stroke);color:var(--text);
+  transition:.32s var(--ease);
+}
+.add:hover{
+  background:linear-gradient(135deg,var(--orange),var(--amber));
+  color:#241000;border-color:transparent;transform:rotate(90deg) scale(1.08);
+  box-shadow:0 12px 26px -10px rgba(255,106,0,.95);
+}
+.add:active{transform:scale(.92)}
+
+/* ============ CART DRAWER ============ */
+.overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(4,3,7,.7);
+  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+  opacity:0;visibility:hidden;transition:.4s var(--ease);
+}
+.overlay.show{opacity:1;visibility:visible}
+
+.cart{
+  position:fixed;top:0;right:0;z-index:300;
+  width:min(420px,100%);height:100dvh;
+  display:flex;flex-direction:column;
+  background:#0d0a13;
+  border-left:1px solid var(--stroke);
+  box-shadow:-40px 0 90px -40px #000;
+  transform:translateX(100%);
+  transition:transform .48s var(--ease);
+}
+.cart.open{transform:translateX(0)}
+
+.cart-head{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:22px 24px;border-bottom:1px solid var(--stroke);
+}
+.cart-head h3{font-family:"Playfair Display",serif;font-size:1.35rem;font-weight:700}
+.cart-head small{display:block;color:var(--muted);font-size:.78rem;font-weight:400}
+
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;font-size:1rem;
+  background:var(--surface);border:1px solid var(--stroke);color:var(--text);
+  transition:.3s var(--ease);
+}
+.icon-btn:hover{background:var(--surface-2);transform:rotate(90deg)}
+
+.cart-items{
+  flex:1;overflow-y:auto;padding:18px 20px;
+  display:flex;flex-direction:column;gap:14px;
+}
+
+.c-item{
+  display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;
+  padding:12px;border-radius:16px;
+  background:var(--surface);border:1px solid var(--stroke);
+  animation:rise .4s var(--ease);
+}
+.c-thumb{
+  width:56px;height:56px;border-radius:14px;display:grid;place-items:center;
+  font-size:26px;background:var(--surface-2);
+}
+.c-info h4{font-size:.9rem;font-weight:600;line-height:1.3;margin-bottom:2px}
+.c-info span{font-size:.82rem;color:var(--gold);font-weight:700}
+
+.qty{display:flex;align-items:center;gap:8px;margin-top:7px}
+.qty button{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;font-size:.9rem;line-height:1;
+  background:var(--surface-2);border:1px solid var(--stroke);color:var(--text);
+  transition:.25s var(--ease);
+}
+.qty button:hover{background:var(--amber);color:#241000;border-color:transparent}
+.qty b{font-size:.82rem;min-width:16px;text-align:center}
+
+.c-remove{
+  align-self:start;background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:1rem;padding:4px;transition:.25s;
+}
+.c-remove:hover{color:#ff5c5c;transform:scale(1.2)}
+
+.cart-empty{
+  flex:1;display:grid;place-content:center;justify-items:center;
+  gap:8px;text-align:center;padding:30px;color:var(--muted);
+}
+.cart-empty .big{font-size:56px;opacity:.5;margin-bottom:6px}
+.cart-empty p{color:var(--text);font-weight:600;font-size:1.02rem}
+.cart-empty small{font-size:.84rem}
+
+.cart-foot{
+  padding:20px 24px 26px;
+  border-top:1px solid var(--stroke);
+  background:rgba(255,255,255,.02);
+}
+.row{display:flex;justify-content:space-between;font-size:.89rem;color:var(--muted);margin-bottom:9px}
+.row.total{
+  color:var(--text);font-size:1.15rem;font-weight:700;
+  font-family:"Playfair Display",serif;
+  padding-top:12px;margin-top:6px;margin-bottom:18px;
+  border-top:1px dashed var(--stroke);
+}
+.row.total span:last-child{
+  background:linear-gradient(120deg,var(--gold),var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;left:50%;bottom:32px;z-index:400;
+  transform:translate(-50%,140%);
+  display:flex;align-items:center;gap:11px;
+  padding:14px 24px;border-radius:99px;
+  background:rgba(18,14,24,.94);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,179,71,.42);
+  font-size:.89rem;font-weight:600;white-space:nowrap;
+  box-shadow:0 24px 50px -18px rgba(0,0,0,.9);
+  transition:transform .45s var(--ease);
+}
+.toast.show{transform:translate(-50%,0)}
+
+/* ============ FOOTER ============ */
+.footer{
+  margin-top:20px;
+  border-top:1px solid var(--stroke);
+  padding:clamp(40px,6vw,64px) clamp(18px,4vw,64px) 30px;
+  background:rgba(255,255,255,.015);
+}
+.footer-grid{
+  max-width:1240px;margin:0 auto;
+  display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px;
+}
+.footer-grid p{color:var(--muted);font-size:.87rem;font-weight:300;margin-top:14px;max-width:34ch}
+.footer h5{
+  font-size:.78rem;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:16px;font-weight:700;
+}
+.footer ul{list-style:none;display:grid;gap:10px}
+.footer ul a{color:var(--muted);text-decoration:none;font-size:.87rem;transition:.25s}
+.footer ul a:hover{color:var(--gold);padding-left:5px}
+.footer-bottom{
+  max-width:1240px;margin:36px auto 0;padding-top:22px;
+  border-top:1px solid var(--stroke);
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;
+  color:var(--muted);font-size:.8rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;text-align:center;padding-top:44px}
+  .hero p.lead{margin-inline:auto}
+  .hero-actions,.hero-stats{justify-content:center}
+  .hero-art{order:-1;min-height:330px}
+  .chip.c1{left:0}
+  .chip.c2{right:0}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .nav-links{display:none}
+  .hero-stats{gap:22px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+  .toast{font-size:.8rem;padding:12px 18px;bottom:18px}
+}
+@media (max-width:520px){
+  .footer-grid{grid-template-columns:1fr}
+  .btn{padding:13px 20px;font-size:.88rem}
+  .cart-btn span.label{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <a href="#" class="logo">
+    <span class="mark">☁️</span>
+    Cloud<em>Crave</em>
+  </a>
+
+  <nav>
+    <ul class="nav-links">
+      <li><a href="#" class="active">Home</a></li>
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#menu">Offers</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
+
+  <div class="nav-right">
+    <button class="cart-btn" id="cartBtn" aria-label="Open cart">
+      🛒 <span class="label">Cart</span>
+      <span class="count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-copy">
+    <div class="eyebrow"><span class="dot"></span> Cloud Kitchen · Delivery Only</div>
+
+    <h1>
+      One Kitchen.
+      <span>Infinite Cravings.</span>
+    </h1>
+
+    <p class="lead">
+      CloudCrave is a delivery-only cloud kitchen — no dining rooms, no distractions.
+      Just award-winning chefs, hand-picked ingredients and food engineered to arrive
+      hot at your door in under 30 minutes.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#menu" class="btn primary">Order Now →</a>
+      <a href="#menu" class="btn ghost">🍴 Explore Menu</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><b>120+</b><span>Signature Dishes</span></div>
+      <div class="stat"><b>4.9★</b><span>Avg. Rating</span></div>
+      <div class="stat"><b>25 min</b><span>Avg. Delivery</span></div>
+    </div>
+  </div>
+
+  <div class="hero-art">
+    <div class="plate-ring"></div>
+    <div class="plate">🍜</div>
+    <div class="chip c1">☁️ 6 cloud kitchens</div>
+    <div class="chip c2">🚀 25 min delivery</div>
+    <div class="chip c3">🔥 Cooked fresh, never stored</div>
+  </div>
+</section>
+
+<!-- ============ MENU ============ -->
+<section class="section" id="menu">
+  <div class="section-head">
+    <div class="kicker">Our Cloud Kitchen Signatures</div>
+    <h2>Handcrafted Plates, Zero Compromise</h2>
+    <p>Every dish is prepared to order in our delivery-only kitchens using seasonal, locally-sourced ingredients.</p>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="pill active" data-cat="all">All Dishes</button>
+    <button class="pill" data-cat="starters">Starters</button>
+    <button class="pill" data-cat="mains">Mains</button>
+    <button class="pill" data-cat="pizza">Pizza</button>
+    <button class="pill" data-cat="desserts">Desserts</button>
+    <button class="pill" data-cat="drinks">Drinks</button>
+  </div>
+
+  <div class="grid" id="menuGrid"></div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer" id="about">
+  <div class="footer-grid">
+    <div>
+      <a href="#" class="logo"><span class="mark">☁️</span> Cloud<em>Crave</em></a>
+      <p>A delivery-only cloud kitchen serving grand flavours with grace. No dine-in, no compromises — just food built for the journey to your door.</p>
+    </div>
+    <div>
+      <h5>Explore</h5>
+      <ul>
+        <li><a href="#menu">Full Menu</a></li>
+        <li><a href="#menu">Daily Offers</a></li>
+        <li><a href="#">Gift Cards</a></li>
+        <li><a href="#">Careers</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Support</h5>
+      <ul>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Refund Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Follow</h5>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Facebook</a></li>
+        <li><a href="#">X / Twitter</a></li>
+        <li><a href="#">YouTube</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 CloudCrave Cloud Kitchen. All rights reserved.</span>
+    <span>Crafted with 🔥 &amp; a very hungry team.</span>
+  </div>
+</footer>
+
+<!-- ============ CART DRAWER ============ -->
+<div class="overlay" id="overlay"></div>
+
+<aside class="cart" id="cart" aria-label="Shopping cart">
+  <div class="cart-head">
+    <div>
+      <h3>Your Order</h3>
+      <small id="cartSummary">0 items</small>
+    </div>
+    <button class="icon-btn" id="closeCart" aria-label="Close cart">✕</button>
+  </div>
+
+  <div class="cart-items" id="cartItems"></div>
+
+  <div class="cart-empty" id="cartEmpty">
+    <div class="big">☁️</div>
+    <p>Your plate is empty</p>
+    <small>Add something delicious to begin</small>
+  </div>
+
+  <div class="cart-foot">
+    <div class="row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+    <div class="row"><span>Delivery</span><span id="delivery">$0.00</span></div>
+    <div class="row total"><span>Total</span><span id="total">$0.00</span></div>
+    <button class="btn primary full" id="checkout">Place Order →</button>
+  </div>
+</aside>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"><span id="toastMsg">Added to cart</span></div>
+
+<script>
+/* ============================================================
+   MENU DATA
+   ============================================================ */
+const MENU = [
+  { id:'m1', name:'Golden Truffle Risotto', cat:'mains',    price:24.00, emoji:'🍚', rating:4.9, tag:"Chef's Pick", desc:'Carnaroli rice, black truffle shavings, 24-month aged parmesan.', grad:'linear-gradient(140deg,#3d2814,#7c4a18)' },
+  { id:'m2', name:'Wagyu Signature Burger', cat:'mains',    price:18.50, emoji:'🍔', rating:4.8, tag:'Bestseller',  desc:'A5 wagyu patty, smoked cheddar, brioche, truffle aioli.',        grad:'linear-gradient(140deg,#40200f,#8a3d14)' },
+  { id:'m3', name:'Lobster Linguine',       cat:'mains',    price:28.00, emoji:'🍝', rating:4.9, tag:'Premium',     desc:'Fresh Maine lobster, garlic butter, chili, hand-cut pasta.',      grad:'linear-gradient(140deg,#4a1520,#8f2436)' },
+  { id:'s1', name:'Burrata & Heirloom',     cat:'starters', price:14.00, emoji:'🍅', rating:4.7, tag:'',            desc:'Creamy burrata, heirloom tomatoes, basil oil, sea salt.',         grad:'linear-gradient(140deg,#3a1414,#8d2a2a)' },
+  { id:'s2', name:'Crispy Calamari',        cat:'starters', price:12.50, emoji:'🦑', rating:4.6, tag:'',            desc:'Lightly battered squid, lemon aioli, charred lime.',              grad:'linear-gradient(140deg,#1b2f3a,#2f6d84)' },
+  { id:'s3', name:'Truffle Parmesan Fries', cat:'starters', price:9.00,  emoji:'🍟', rating:4.8, tag:'Popular',     desc:'Triple-cooked fries, truffle oil, parmesan snow, chives.',        grad:'linear-gradient(140deg,#3b3210,#8a7420)' },
+  { id:'p1', name:'Margherita Regina',      cat:'pizza',    price:16.00, emoji:'🍕', rating:4.8, tag:'Classic',     desc:'San Marzano tomato, fior di latte, fresh basil, olive oil.',      grad:'linear-gradient(140deg,#4a1a12,#a83a22)' },
+  { id:'p2', name:'Pepperoni Inferno',      cat:'pizza',    price:19.00, emoji:'🍕', rating:4.9, tag:'Spicy 🔥',    desc:'Double pepperoni, calabrian chili, hot honey drizzle.',           grad:'linear-gradient(140deg,#4d1010,#a01d1d)' },
+  { id:'d1', name:'Molten Chocolate Sphere',cat:'desserts', price:11.00, emoji:'🍫', rating:5.0, tag:'Signature',   desc:'Valrhona dark chocolate, warm ganache, gold leaf.',               grad:'linear-gradient(140deg,#2b1a12,#5e3823)' },
+  { id:'d2', name:'Vanilla Bean Cheesecake',cat:'desserts', price:10.00, emoji:'🍰', rating:4.7, tag:'',            desc:'Madagascar vanilla, buttery biscuit base, berry coulis.',         grad:'linear-gradient(140deg,#3a2a3f,#6f4d78)' },
+  { id:'k1', name:'Iced Berry Sangria',     cat:'drinks',   price:8.00,  emoji:'🍹', rating:4.6, tag:'',            desc:'Mixed berries, citrus, mint, sparkling water.',                   grad:'linear-gradient(140deg,#33103a,#7a2472)' },
+  { id:'k2', name:'Velvet Espresso Martini',cat:'drinks',   price:12.00, emoji:'🍸', rating:4.9, tag:'Bar Favourite',desc:'Cold brew, vanilla vodka, silky crema, cocoa dust.',             grad:'linear-gradient(140deg,#241a12,#4d3726)' }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const cart = new Map();          // id -> quantity
+const DELIVERY_FEE = 3.99;
+const FREE_DELIVERY_OVER = 50;
+
+const $ = (id) => document.getElementById(id);
+const money = (n) => `$${n.toFixed(2)}`;
+
+/* ============================================================
+   RENDER MENU
+   ============================================================ */
+function renderMenu(cat = 'all'){
+  const grid = $('menuGrid');
+  const list = cat === 'all' ? MENU : MENU.filter(d => d.cat === cat);
+
+  grid.innerHTML = list.map((d, i) => `
+    <article class="card" style="animation-delay:${i * 55}ms">
+      <div class="card-media" style="background:${d.grad}">
+        ${d.tag ? `<span class="tag">${d.tag}</span>` : ''}
+        <span class="card-emoji">${d.emoji}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-top">
+          <h3>${d.name}</h3>
+          <span class="rating">★ ${d.rating}</span>
+        </div>
+        <p>${d.desc}</p>
+        <div class="card-bottom">
+          <span class="price">${money(d.price)}</span>
+          <button class="add" data-add="${d.id}" aria-label="Add ${d.name} to cart">+</button>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+/* ============================================================
+   CART LOGIC
+   ============================================================ */
+function addToCart(id){
+  cart.set(id, (cart.get(id) || 0) + 1);
+  renderCart();
+
+  const item = MENU.find(m => m.id === id);
+  showToast(`${item.emoji}  ${item.name} added`);
+
+  const badge = $('cartCount');
+  badge.classList.remove('pop');
+  void badge.offsetWidth;         // restart animation
+  badge.classList.add('pop');
+}
+
+function changeQty(id, delta){
+  const qty = (cart.get(id) || 0) + delta;
+  if (qty <= 0) cart.delete(id);
+  else cart.set(id, qty);
+  renderCart();
+}
+
+function removeItem(id){
+  cart.delete(id);
+  renderCart();
+}
+
+function renderCart(){
+  const entries = [...cart.entries()];
+  const count = entries.reduce((sum, [, q]) => sum + q, 0);
+
+  $('cartCount').textContent = count;
+  $('cartSummary').textContent = `${count} item${count === 1 ? '' : 's'}`;
+
+  const itemsEl = $('cartItems');
+  const emptyEl = $('cartEmpty');
+
+  if (!entries.length){
+    itemsEl.style.display = 'none';
+    emptyEl.style.display = 'grid';
+  } else {
+    itemsEl.style.display = 'flex';
+    emptyEl.style.display = 'none';
+
+    itemsEl.innerHTML = entries.map(([id, qty]) => {
+      const d = MENU.find(m => m.id === id);
+      return `
+        <div class="c-item">
+          <div class="c-thumb">${d.emoji}</div>
+          <div class="c-info">
+            <h4>${d.name}</h4>
+            <span>${money(d.price * qty)}</span>
+            <div class="qty">
+              <button data-minus="${id}" aria-label="Decrease quantity">−</button>
+              <b>${qty}</b>
+              <button data-plus="${id}" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+          <button class="c-remove" data-remove="${id}" aria-label="Remove ${d.name}">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* Totals */
+  const subtotal = entries.reduce((sum, [id, q]) => {
+    const d = MENU.find(m => m.id === id);
+    return sum + d.price * q;
+  }, 0);
+
+  const delivery = subtotal === 0 ? 0
+                 : subtotal >= FREE_DELIVERY_OVER ? 0
+                 : DELIVERY_FEE;
+
+  $('subtotal').textContent = money(subtotal);
+  $('delivery').textContent = delivery === 0 && subtotal > 0
+    ? 'FREE 🎉'
+    : money(delivery);
+  $('total').textContent = money(subtotal + delivery);
+
+  $('checkout').disabled = subtotal === 0;
+  $('checkout').style.opacity = subtotal === 0 ? .45 : 1;
+  $('checkout').style.cursor = subtotal === 0 ? 'not-allowed' : 'pointer';
+}
+
+/* ============================================================
+   DRAWER + TOAST
+   ============================================================ */
+function openCart(){
+  $('cart').classList.add('open');
+  $('overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCart(){
+  $('cart').classList.remove('open');
+  $('overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = $('toast');
+  $('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+// Category filters
+$('filters').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  renderMenu(pill.dataset.cat);
+});
+
+// Add to cart (delegated)
+$('menuGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-add]');
+  if (!btn) return;
+  addToCart(btn.dataset.add);
+});
+
+// Cart item controls (delegated)
+$('cartItems').addEventListener('click', (e) => {
+  const plus   = e.target.closest('[data-plus]');
+  const minus  = e.target.closest('[data-minus]');
+  const remove = e.target.closest('[data-remove]');
+
+  if (plus)   changeQty(plus.dataset.plus, 1);
+  if (minus)  changeQty(minus.dataset.minus, -1);
+  if (remove) removeItem(remove.dataset.remove);
+});
+
+$('cartBtn').addEventListener('click', openCart);
+$('closeCart').addEventListener('click', closeCart);
+$('overlay').addEventListener('click', closeCart);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeCart();
+});
+
+// Checkout
+$('checkout').addEventListener('click', () => {
+  if (!cart.size) return;
+  cart.clear();
+  renderCart();
+  closeCart();
+  showToast('🎉 Order placed! Your cloud kitchen feast is on its way.');
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderMenu();
+renderCart();
+</script>
+</body>
+</html>
